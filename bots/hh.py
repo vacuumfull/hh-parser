@@ -1,11 +1,10 @@
-import json
 import time
 import datetime
 import copy
 from bots.config import HH
 from grab import Grab
-from bs4 import BeautifulSoup
 from grab.spider import Task, Spider
+from bots.tasks import check_with_cache
 
 
 class HHSpider(Spider):
@@ -37,17 +36,13 @@ class HHSpider(Spider):
 	def task_open_page(self, grab, task, **kwargs):
 		time.sleep(2)
 		info_card = self.load_content(task.info)
-
-
-	def task_load_info(self, grab, task, **kwargs):
-		print(task.url)
+		check_with_cache.delay(info_card)
 
 
 	def reset_default(self, page):
 		self.page = page
 		self.request_uri = self.request_uri[:-1] + str(self.page)
 		self.initial_urls = [self.base_url + self.request_uri]
-		
 
 
 	def load_content(self, info):

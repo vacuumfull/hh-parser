@@ -4,3 +4,4 @@ lxml
 grab
 Celery
 beautifulsoup4
+python-memcached
