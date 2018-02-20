@@ -24,7 +24,6 @@ class HHSpider(Spider):
 
 	def task_initial(self, grab, task):
 		print('Loaded main page')
-		print(grab.doc.select(HH.last_pager).text())
 
 		for elem in grab.doc.select(HH.vacancies_path):	
 			info = {}
@@ -32,7 +31,6 @@ class HHSpider(Spider):
 			info['title'] = elem.select(HH.title_path).text()
 			info['date'] = elem.select(HH.date_path).text()
 			info['link'] = link
-			print(info)
 			yield Task('open_page', url=link, info=copy.deepcopy(info))
 
 
@@ -45,11 +43,18 @@ class HHSpider(Spider):
 		print(task.url)
 
 
+	def reset_default(self, page):
+		self.page = page
+		self.request_uri = self.request_uri[:-1] + str(self.page)
+		self.initial_urls = [self.base_url + self.request_uri]
+		
+
+
 	def load_content(self, info):
 		"""Load content from url"""
 		grabber = Grab()
 		grabber.go(info.get('link'))
-		print(grabber.doc.select(HH.experience_path).text())
+	
 		info['content'] = grabber.doc.select(HH.content_path).html()
 		info['date'] = self.format_date(info.get('date'))
 		info['employer'] = grabber.doc.select(HH.employer_name).text()
