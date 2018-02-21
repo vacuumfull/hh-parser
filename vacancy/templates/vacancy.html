@@ -1,5 +1,17 @@
 {% extends "base.html" %}
 
 {% block content %}
-hihihi
+<div class="container">
+	<h3>{{ vacancy.title }}</h3>
+	<p><b>Требуемый опыт</b>: {{ vacancy.experience }}</p>
+	<p><b>Зарплатка</b>: {{ vacancy.salary }}</p>
+	<p><b>Работодатель</b>: {{ vacancy.employer }}</p>
+	<p><b>Адрес</b>: {{ vacancy.address }}</p>
+	{% autoescape off %}
+		{{ vacancy.content2 }}
+	{% endautoescape %}
+	<p><b>Дата публикации:</b> {{ vacancy.date }}</p>
+	<p><b>Ссылка:</b> {{ vacancy.link }}</p>
+</div>
+
 {% endblock %}
