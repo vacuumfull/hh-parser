@@ -5,7 +5,7 @@ import copy
 from bots.config import HH
 from grab import Grab
 from grab.spider import Task, Spider
-from bots.tasks import check_with_cache, parse_next_page
+from bots.tasks import check_with_cache
 
 
 class HHSpider(Spider):
@@ -51,14 +51,12 @@ class HHSpider(Spider):
 
 
 	def task_open_page(self, grab, task, **kwargs):
-		time.sleep(2)
-		counter = task.info.get('counter')
+	
+		if task.info.get('counter') > 18:
+			print(task.info.get('counter'))
 		info_card = self.load_content(task.info)
 		check_with_cache.delay(info_card)	
-
-		if counter == self.max_on_page:
-			time.sleep(6)
-			parse_next_page.delay(self.page, self.limit)	
+		time.sleep(2)
 
 
 	def reset_default(self, page):
@@ -81,7 +79,6 @@ class HHSpider(Spider):
 		else:
 			info['address'] = ""
 		info['experience'] = grabber.doc.select(HH.experience_path).text()
-		print(info)
 		return info
 
 

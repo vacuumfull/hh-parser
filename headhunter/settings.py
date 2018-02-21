@@ -129,8 +129,10 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
+
 STATICFILES_DIRS = [
 	('ckeditor', 'static/ckeditor'),
+	('dist', 'static/dist'),
 ]
 
 # REDIS related settings

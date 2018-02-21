@@ -16,12 +16,6 @@ def save_current_vacancies():
 	cache.set('vacancies', vacancies, 3600*24)
 
 
-@app.task(name='bots.tasks.parse_next_page')
-def parse_next_page(page, limit):
-	newpage = page + 1
-	print('Текущая страница ', newpage)
-
-
 @app.task(name='bots.tasks.check_with_cache')
 def check_with_cache(info):
 	vacancies  = cache.get('vacancies')

@@ -6,12 +6,14 @@
 	<p><b>Требуемый опыт</b>: {{ vacancy.experience }}</p>
 	<p><b>Зарплатка</b>: {{ vacancy.salary }}</p>
 	<p><b>Работодатель</b>: {{ vacancy.employer }}</p>
-	<p><b>Адрес</b>: {{ vacancy.address }}</p>
+	{% if vacancy.address %}
+		<p><b>Адрес</b>: {{ vacancy.address }}</p>
+	{% endif %}
 	{% autoescape off %}
-		{{ vacancy.content2 }}
+		{{ vacancy.content }}
 	{% endautoescape %}
 	<p><b>Дата публикации:</b> {{ vacancy.date }}</p>
-	<p><b>Ссылка:</b> {{ vacancy.link }}</p>
+	<p><b>Ссылка:</b> <a href="{{ vacancy.link }}">{{ vacancy.link }}</a></p>
 </div>
 
 {% endblock %}

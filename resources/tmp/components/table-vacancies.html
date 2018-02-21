@@ -1,0 +1,50 @@
+<div class="row">
+    <div class="col s9">
+        <h3 class="__margin-top_xl __margin-bottom_l">Табица вакансий</h3>
+    </div>
+    <div class="col s3">
+        <div v-if="vacancies.length > 0" class="__margin-top_xl">
+            <p class="right">Количество: <b>{{vacancies.length}}</b></p>
+        </div>
+    </div>
+    <div class="col s7">
+        <div class="__padding-top_l">
+            <a class="btn red" v-on:click="remove">Очистить</a>
+        </div>
+    </div>
+    <div class="col s3">
+        <div class="input-field">
+            <input id="page_limit" v-model="limit" type="text">
+            <label for="page_limit">Страниц спарсить</label>
+        </div>
+    </div>
+    <div class="col s2">
+        <div class="__padding-top_l">
+            <a class="btn" v-on:click="start">Запустить</a>
+        </div>
+    </div>
+    <div class="col s12">
+        <table v-if="showTable" class="centered striped bordered __margin-top_xl __border __margin-bottom_l">
+            <thead>
+                <tr>
+                    <th>Название</th>
+                    <th>Работодатель</th>
+                    <th>Зарплатка</th>
+                    <th class="__padding-left_l __padding-right_l">Опыт</th>
+                    <th class="__padding-left_l __padding-right_xxl">Дата</th>
+                </tr>
+            </thead>
+            <tbody>
+                <template v-for="(item, key) in vacancies" >
+                    <tr v-on:click="link(item.id)" class="hovered-row __link"  :id="key + '_' + item.id" >
+                        <td class="__padding-left_m __padding-right_m">{{ item.title }}</td>
+                        <td>{{ item.employer }}</td>
+                        <td>{{ item.salary }}</td>
+                        <td>{{ item.experience }}</td>
+                        <td>{{ formatDate(item.date) }}</td>
+                    </tr>
+                </template>
+            </tbody>
+        </table>
+    </div>
+</div>

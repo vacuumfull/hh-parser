@@ -4,5 +4,7 @@ from vacancy import views
 app_name = 'vacancy'
 
 urlpatterns = ([
-	path('<pk>/', views.VacancyView.as_view())
+	path('api/', views.api),
+	path('remove/', views.remove),
+	path('<pk>/', views.VacancyView.as_view()),
 ])

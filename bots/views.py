@@ -1,19 +1,15 @@
-from django.http.response import JsonResponse
 from bots.hh import HHSpider
-from vacancy.models import Vacancy
-
+from django.http.response import JsonResponse
 
 def start_parser(request, pager=1):
 	print(pager)
 	bot  = HHSpider()
 	bot.initial_urls = bot.create_urls(pager)
 	bot.run()
+	
+	response = {
+		'started' : True
+	}
 
-
-def api(request):
-	queryset = Vacancy.objects.all().values('title', 'date', 'salary','employer', 'address','experience')
-	vacancies = [x for x in queryset]
-
-	return JsonResponse(vacancies, safe=False)
-
+	return JsonResponse(response, safe=False)
 

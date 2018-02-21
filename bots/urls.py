@@ -5,5 +5,4 @@ app_name = 'bots'
 
 urlpatterns = ([
 	path('start/<int:pager>', views.start_parser),
-	path('api/', views.api)
 ])
