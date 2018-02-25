@@ -3,7 +3,7 @@ pycurl
 lxml
 grab
 Celery
-beautifulsoup4
 python-memcached
 numpy
 redis
+flower
