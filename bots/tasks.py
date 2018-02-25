@@ -1,8 +1,6 @@
 import base64
 import time
-from urllib.error import HTTPError
-from urllib.request import urlretrieve
-from datetime import timedelta
+from bots.hh import HHGrabber
 from django.core.cache import cache
 from vacancy.models import Vacancy
 from headhunter.celery import app
@@ -16,7 +14,40 @@ def save_current_vacancies():
 	cache.set('vacancies', vacancies, 3600*24)
 
 
-@app.task(name='bots.tasks.check_with_cache')
+@app.task(name='bots.tasks.init_grab')
+def init_grab():
+	keyword = 'python'
+	page = 0
+	load_page.delay(current=page, last=100, keyword=keyword)
+	
+
+@app.task(name='bots.tasks.load_full_card')
+def load_full_card(preview):
+	bot = HHGrabber()
+	loaded = bot.load_full_card(preview)
+	check_with_cache(loaded)
+
+
+@app.task(name='bots.tasks.load_page')
+def load_page(current, last, keyword):
+	uri = '/search/vacancy?clusters=true&area=2\
+								&enable_snippets=true&text='+ keyword + '&page=' + str(current)
+	print(uri)
+	bot = HHGrabber()
+	result = bot.load_page(uri, last)
+
+	for item in result['preview_cards']:
+		load_full_card.delay(item)
+	if result['current_page'] <= result['last_page']:
+		load_page.delay(current=result['current_page'], last=result['last_page'], keyword=keyword)
+	else:
+		finish.delay()
+
+@app.task(name='bots.tasks.finish')
+def finish():
+	print('Congratulations!')
+
+
 def check_with_cache(info):
 	vacancies  = cache.get('vacancies')
 	if isinstance(vacancies, type(None)):
@@ -31,15 +62,15 @@ def check_with_cache(info):
 	elif len(vacancies) > 0:
 		check_or_update(vacancies, info)
 
-
 def check_or_update(vacancies, info):
-	isFound = False
-	for item in vacancies:
-		if compare(item, prepare_info(info)) > 0:
-			isFound = True
-	if isFound is False:
-		save_vacancy(info)
-		update_cache(info)
+	if type(info) is dict:
+		isFound = False
+		for item in vacancies:
+			if compare(item, prepare_info(info)) > 0:
+				isFound = True
+		if isFound is False:
+			save_vacancy(info)
+			update_cache(info)
 
 
 def compare(dict1, dict2):
@@ -56,14 +87,8 @@ def save_vacancy(info):
 
 def prepare_info(info):
 	"""Удаляем лишние ключи для сравнения"""
-	info_copy = info.copy()
-	info_copy.pop('date', None)
-	info_copy.pop('content', None)
-	info_copy.pop('address', None)
-	info_copy.pop('location', None)
-	info_copy.pop('salary', None)
-	info_copy.pop('experience', None)
-	return info_copy
+	prepared = {'title': info['title'], 'employer': info['employer']}
+	return prepared
 
 
 def update_cache(new_info):

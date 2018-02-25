@@ -4,83 +4,74 @@ import datetime
 import copy
 from bots.config import HH
 from grab import Grab
-from grab.spider import Task, Spider
-from bots.tasks import check_with_cache
+from grab.error import GrabTooManyRedirectsError
 
 
-class HHSpider(Spider):
+class HHGrabber:
 
+	grabber = Grab()
 	base_url = 'https://spb.hh.ru'
 	keyword = 'python'
-	max_on_page = 0
 	page = 0
-	limit = 10
 
 
 	request_uri = '/search/vacancy?clusters=true&area=2\
-								&enable_snippets=true&text='+ keyword + '&page='
-	initial_urls = [base_url + request_uri + '0']
+								&enable_snippets=true&text='+ keyword + '&page=' + str(page)
 
 	monthes = [	{'Янв': '01'}, {'Фев': '02'}, {'Мар': '03'}, {'Апр': '04'},{'Мая': '05'},
 				{'Май': '05'}, {'Июн': '06'}, {'Июл': '07'}, {'Авг': '08'},
 				{'Сент': '09'}, {'Окт': '10'}, {'Нояб': '11'}, {'Дек': '12'}]
 
 
-	def create_urls(self, limit):
-		urls = []
-		rang = np.arange(self.page, limit, 1)
-		for i in rang: urls.append(self.base_url + self.request_uri + str(i))
-		return urls
 
+	def load_page(self, uri, def_limit=0):
+		try:
+			self.grabber.go(self.base_url + uri)
+			grdoc = self.grabber.doc
+			current = int(grdoc.select(HH.current_page).text())
+			if grdoc.select(HH.last_page).exists():
+				limit = int(grdoc.select(HH.last_page).text()) - 1
+			else:
+				limit = def_limit
+			result = {
+				'current_page': current,
+				'last_page': limit,
+				'preview_cards': []
+			}
+			for elem in grdoc.select(HH.vacancies_path):	
+				info = {}
+				info['title'] = self.get_path_info(elem, HH.title_path)
+				info['date'] = self.get_path_info(elem, HH.date_path)
+				info['link'] = self.get_path_info(elem, HH.link_path)
+				result['preview_cards'].append(info)
+			return result
+		except GrabTooManyRedirectsError as e:
+			print(e)
 
-	def task_initial(self, grab, task):
-		counter = 0
-		print('Loaded main page')
-		last_page = grab.doc.select(HH.last_pager).text()
-		self.max_on_page = len(grab.xpath_list(HH.vacancies_path))
-		for elem in grab.doc.select(HH.vacancies_path):	
-			counter+=1
-			info = {}
-			link = elem.select(HH.link_path).text()
-			info['counter'] = counter
-			info['title'] = elem.select(HH.title_path).text()
-			info['date'] = elem.select(HH.date_path).text()
-			info['link'] = link
-			yield Task('open_page', url=link, info=copy.deepcopy(info))
-	
-
-
-	def task_open_page(self, grab, task, **kwargs):
-	
-		if task.info.get('counter') > 18:
-			print(task.info.get('counter'))
-		info_card = self.load_content(task.info)
-		check_with_cache.delay(info_card)	
-		time.sleep(2)
-
-
-	def reset_default(self, page):
-		self.page = page
-		self.request_uri = self.request_uri[:-1] + str(self.page)
-		self.initial_urls = [self.base_url + self.request_uri]
-
-
-	def load_content(self, info):
+	def load_full_card(self, info):
 		"""Load content from url"""
-		grabber = Grab()
-		grabber.go(info.get('link'))
-		info.pop('counter', None)
-		info['content'] = grabber.doc.select(HH.content_path).html()
-		info['date'] = self.format_date(info.get('date'))
-		info['employer'] = grabber.doc.select(HH.employer_name).text()
-		info['salary'] = grabber.doc.select(HH.vacancy_salary).text()
-		if grabber.doc.select(HH.address_path).exists():
-			info['address'] = grabber.doc.select(HH.address_path).text()
-		else:
-			info['address'] = ""
-		info['experience'] = grabber.doc.select(HH.experience_path).text()
-		return info
+		try:
+			self.grabber.go(info.get('link'))
+			grdoc = self.grabber.doc
+			info['date'] = self.format_date(info.get('date'))
+			info['content'] = self.get_path_info(grdoc, HH.content_path, isHtml=True)
+			info['employer'] = self.get_path_info(grdoc, HH.employer_name)
+			info['salary'] = self.get_path_info(grdoc, HH.vacancy_salary)
+			info['address'] = self.get_path_info(grdoc, HH.address_path)
+			info['experience'] = self.get_path_info(grdoc, HH.experience_path)
+			return info
+		except GrabTooManyRedirectsError as e:
+			print(e)
 
+
+	def get_path_info(self, grab, path, isHtml=False):
+		isExists = grab.select(path).exists()
+		if isExists and isHtml is True:
+			return grab.select(path).html()
+		elif isExists and isHtml is False:
+			return grab.select(path).text()
+		else:
+			return ""
 
 	def format_date(self, datestring):
 		year = '2018'
@@ -96,5 +87,4 @@ class HHSpider(Spider):
 
 
 if __name__ == 'main':
-	bot = HHSpider()
-	bot.run()
+	bot = HHGrabber()

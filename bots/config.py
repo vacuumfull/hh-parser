@@ -2,7 +2,6 @@ class HH:
 	"""html pathes config"""
 
 	vacancies_path = "//div[@class='bloko-column bloko-column_l-13 bloko-column_m-9']\
-					//div[@class='bloko-gap bloko-gap_top']//div//div[@class='vacancy-serp']\
 					//div[@class='vacancy-serp-item ']"
 	
 	link_path = "div[@class='vacancy-serp-item__row']\
@@ -16,7 +15,8 @@ class HH:
 	title_path = "div[@class='vacancy-serp-item__row']\
 				/div[@class='vacancy-serp-item__info']/div[@class='vacancy-serp-item__title']/a"
 
-	last_pager = "//div[@class='bloko-gap bloko-gap_top']/div/a[@class='bloko-button HH-Pager-Control']"
+	current_page = "//span[@class='bloko-button-group']/span"
+	last_page = "//div[@class='bloko-gap bloko-gap_top']/div/a[@data-qa='pager-page']"
 
 	content_path = "//div[@class='vacancy-description']//div[@class='vacancy-section']"
 	employer_name = "//p[@class='vacancy-company-name-wrapper']//a"
