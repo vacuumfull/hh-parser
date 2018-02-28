@@ -13,8 +13,11 @@ class VacancyView(DetailView):
 def api(request):
 	queryset = Vacancy.objects.all().values('id','title', 'date', 'salary','employer', 'address','experience')
 	vacancies = [x for x in queryset]
-
-	return JsonResponse(vacancies, safe=False)
+	result = {
+		'length': len(vacancies),
+		'vacancies': vacancies
+	}
+	return JsonResponse(result, safe=False)
 
 
 def remove(request):

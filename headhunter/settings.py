@@ -40,6 +40,7 @@ INSTALLED_APPS = [
 	'headhunter',
 	'vacancy',
 	'bots',
+	'wsocket',
 ]
 
 MIDDLEWARE = [
