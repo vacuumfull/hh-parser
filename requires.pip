@@ -7,3 +7,4 @@ python-memcached
 numpy
 redis
 flower
+websocket-client
